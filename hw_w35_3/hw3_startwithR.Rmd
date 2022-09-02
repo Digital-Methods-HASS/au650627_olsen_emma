@@ -30,7 +30,7 @@ setwd("~/Desktop/cognitive_science/5th_semester/cultural_datascience/au650627_ol
 
 rooms <- c(1, 2, 4, 5, 1, 3, 1, NA, 3, 1, 3, 2, 1, NA, 1, 8, 3, 1, 4, NA, 1, 3, 1, 2, 1, 7, 1, 9, 3, NA)
 
-```{r}
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 # defining the vector
 rooms <- c(1, 2, 4, 5, 1, 3, 1, NA, 3, 1, 3, 2, 1, NA, 1, 8, 3, 1, 4, NA, 1, 3, 1, 2, 1, 7, 1, 9, 3, NA) 
 
@@ -69,12 +69,11 @@ c) the file structure of your **R project** in the bottom right "Files" pane.
 
 Save the screenshot as an image and put it in your **AUID_lastname_firstname** repository inside our Github organisation (github.com/Digital-Methods-HASS) or equivalent. Place **here** the URL leading to the screenshot in your repository.
 
-```{r read SAFI_clean.csv as 'interviews' digital object}
+```{r}
 
 SAFI_clean <- read_csv("SAFI_clean.csv")
 
 ```
-
 
 4) Challenge: If you managed to create your own Danish king dataset, use it. If not, you the one attached to this assignment (it might need to be cleaned up a bit). Load the dataset into R as a tibble. Calculate the mean() and median() duration of rule over time and find the three mondarchs ruling the longest. How many days did they rule (accounting for transition year?)
 
