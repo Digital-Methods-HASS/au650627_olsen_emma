@@ -67,8 +67,7 @@ b) the 'interviews' object in the Environment, and
 
 c) the file structure of your **R project** in the bottom right "Files" pane.
 
-Save the screenshot as an image and put it in your **AUID_lastname_firstname** repository inside our Github organisation (github.com/Digital-Methods-HASS) or equivalent. Place **https://github.com/Digital-Methods-HASS/au650627_olsen_emma/blob/main/hw_w35_3/HW3_task.png
-** the URL leading to the screenshot in your repository.
+Save the screenshot as an image and put it in your **AUID_lastname_firstname** repository inside our Github organisation (github.com/Digital-Methods-HASS) or equivalent. Place **https://github.com/Digital-Methods-HASS/au650627_olsen_emma/blob/main/hw_w35_3/HW3_task.png** the URL leading to the screenshot in your repository.
 
 ```{r}
 
