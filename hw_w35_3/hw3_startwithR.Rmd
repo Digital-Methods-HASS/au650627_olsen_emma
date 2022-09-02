@@ -67,7 +67,8 @@ b) the 'interviews' object in the Environment, and
 
 c) the file structure of your **R project** in the bottom right "Files" pane.
 
-Save the screenshot as an image and put it in your **AUID_lastname_firstname** repository inside our Github organisation (github.com/Digital-Methods-HASS) or equivalent. Place **here** the URL leading to the screenshot in your repository.
+Save the screenshot as an image and put it in your **AUID_lastname_firstname** repository inside our Github organisation (github.com/Digital-Methods-HASS) or equivalent. Place **https://github.com/Digital-Methods-HASS/au650627_olsen_emma/blob/main/hw_w35_3/HW3_task.png
+** the URL leading to the screenshot in your repository.
 
 ```{r}
 
@@ -80,6 +81,9 @@ help(download.file)
 interviews <- read_csv("SAFI_clean.csv")
 
 ```
+
+Link to screenshot: https://github.com/Digital-Methods-HASS/au650627_olsen_emma/blob/main/hw_w35_3/HW3_task.png
+
 
 4) Challenge: If you managed to create your own Danish king dataset, use it. If not, you the one attached to this assignment (it might need to be cleaned up a bit). Load the dataset into R as a tibble. Calculate the mean() and median() duration of rule over time and find the three mondarchs ruling the longest. How many days did they rule (accounting for transition year?)
 
