@@ -71,7 +71,13 @@ Save the screenshot as an image and put it in your **AUID_lastname_firstname** r
 
 ```{r}
 
-SAFI_clean <- read_csv("SAFI_clean.csv")
+# downloading file
+download.file("https://figshare.com/articles/dataset/SAFI_Survey_Results/6262019?file=11492171","SAFI_clean.csv", mode = "wb")
+
+help(download.file)
+
+
+interviews <- read_csv("SAFI_clean.csv")
 
 ```
 
