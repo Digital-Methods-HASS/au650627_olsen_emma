@@ -1,0 +1,231 @@
+---
+title: "HW5 - Make Data Move"
+author: ''
+date: "05/10/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#  Explore global development with R
+Today, you will load a filtered gapminder dataset -  with a subset of data on global development from 1952 - 2007 in increments of 5 years - to capture the period between the Second World War and the Global Financial Crisis. 
+
+**Your task: Explore the data and visualise it in both static and animated ways, providing answers and solutions to 7 questions/tasks below.**
+
+## Get the necessary packages
+First, start with installing the relevant packages 'tidyverse', 'gganimate', and 'gapminder'.
+
+```{r libraries, echo = FALSE}
+# install.packages("gganimate")
+# install.packages("gifski")
+# install.packages("av")
+# install.packages("gapminder")
+library(tidyverse)
+library(gganimate)
+library(gifski)
+library(av)
+library(gapminder)
+
+pacman::p_load(tidyverse,gganimate,gifski,av,gapminder)
+```
+
+## Look at the data and tackle the tasks
+First, see which specific years are actually represented in the dataset and what variables are being recorded for each country. Note that when you run the cell below, Rmarkdown will give you two results - one for each line - that you can flip between.
+```{r}
+str(gapminder)
+unique(gapminder$year)
+head(gapminder)
+```
+
+The dataset contains information on each country in the sampled year, its continent, life expectancy, population, and GDP per capita.
+
+Let's plot all the countries in 1952.
+```{r 1957}
+theme_set(theme_bw())  # set theme to white background for better visibility
+
+ggplot(subset(gapminder, year == 1952), aes(gdpPercap, lifeExp, size = pop)) +
+  geom_point() +
+  scale_x_log10() 
+```
+...
+
+We see an interesting spread with an outlier to the right. Answer the following questions, please:
+
+
+1. *Why does it make sense to have a log10 scale on x axis?*
+It is common practice to display exponential growth on a log scale, as the data would otherwise be squeezed too much together (increase too quickly) to be sensible to fit within a small graph. Had we not added the ``scale_x_log10()`` argument, all the data points would be placed within a very small range on the x-axis, making it very difficult if not even impossible to see any trends and compare data points in the data. With the log10 scale on the x axis, the data points become much more spread out and manageable in terms of interpretation. 
+
+
+2. *Who is the outlier (the richest country in 1952 - far right on x axis)?* 
+```{r}
+
+df <- gapminder %>% filter(year==1952)
+df[which.max(df$gdpPercap),]
+
+```
+_Kuwait was the richest country in 1952_. 
+
+
+Next, you can generate a similar plot for 2007 and compare the differences
+```{r 2007}
+ggplot(subset(gapminder, year == 2007), aes(gdpPercap, lifeExp, size = pop)) +
+  geom_point() +
+  scale_x_log10() 
+```
+...
+
+The black bubbles are a bit hard to read, the comparison would be easier with a bit more visual differentiation.
+
+Tasks:
+
+3. *Differentiate the **continents** by color, and fix the axis labels and units to be more legible (**Hint**: the 2.50e+08 is so called "scientific notation", which you might want to eliminate)*
+
+```{r}
+options("scipen" = 100) # removing scientific notation 
+
+gapminder %>%
+  filter(year == 2007) %>% 
+   ggplot(aes(gdpPercap, lifeExp, size=pop, color=continent))+
+    geom_point()+
+    scale_x_log10()+
+    ggtitle("Life Expectancy and GDP in 2007", subtitle = "With point size determined by population size and color by continent")+
+    xlab("GDP per Capita")+
+    ylab("Life Expectancy (in years)")+
+    labs(color="Continent", size="Population size")+
+    theme(
+      plot.title = element_text(hjust = 0.5, size = 18),
+      plot.subtitle = element_text(hjust = 0.5, size = 11, face="italic"))
+```
+
+
+4. *What are the five richest countries in the world in 2007?*
+
+```{r}
+gapminder %>%
+  filter(year == 2007) %>% 
+  slice_max(gdpPercap, n=5) %>% 
+  select(country, gdpPercap)
+```
+
+_The five richest countries in the world in 2007 is Norway, Kuwait, Singapore, United States, and Ireland_
+
+##  Make it move!
+
+The comparison would be easier if we had the two graphs together, animated. We have a lovely tool in R to do this: the `gganimate` package. Beware that there may be other packages your operating system needs in order to glue interim images into an animation or video. Read the messages when installing the package.
+
+Also, there are *two* ways of animating the gapminder ggplot.
+
+### Option 1: Animate using transition_states() 
+
+The first step is to create the object-to-be-animated
+```{r anim1 start}
+anim <- ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop)) +
+  geom_point() +
+  scale_x_log10()  # convert x to log scale
+anim
+```
+
+...
+
+This plot collates all the points across time. The next step is to split it into years and animate it. This may take some time, depending on the processing power of your computer (and other things you are asking it to do). Beware that the animation might appear in the bottom right 'Viewer' pane, not in this rmd preview. You need to `knit` the document to get the visual inside an html file.
+
+```{r anim1}
+anim + transition_states(year, 
+                      transition_length = 1,
+                      state_length = 1)
+```
+...
+
+Notice how the animation moves jerkily, 'jumping' from one year to the next 12 times in total. This is a bit clunky, which is why it's good we have another option. 
+
+
+### Option 2 Animate using transition_time()
+This option smoothes the transition between different 'frames', because it interpolates and adds transitional years where there are gaps in the timeseries data.
+
+```{r anim2}
+anim2 <- ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop)) +
+  geom_point() +
+  scale_x_log10() + # convert x to log scale
+  transition_time(year)
+anim2
+```
+
+The much smoother movement in Option 2 will be much more noticeable if you add a title to the chart, that will page through the years corresponding to each frame.
+
+Now, choose one of the animation options and get it to work. You may need to troubleshoot your installation of `gganimate` and other packages 
+
+
+5. *Can you add a title to one or both of the animations above that will change* 
+ *in sync with the animation?* *(**Hint**: search labeling for `transition_states()` and `transition_time()` functions respectively)*
+```{r}
+
+```
+
+
+
+6. *Can you made the axes' labels and units more readable? Consider expanding the abreviated lables as well as the scientific notation in the legend and x axis to whole numbers.*
+
+```{r}
+gapminder %>%
+  ggplot(aes(gdpPercap, lifeExp, size=pop, color=continent))+
+  geom_point()+ 
+  scale_x_log10()+
+  transition_time(year)+
+  labs(title = 'Development of Life Expectancy and GDP',
+       subtitle = "Year: {frame_time}",
+       x = "GDP per capita", 
+       y = "Life Expectancy", 
+       color="Continent", 
+       size="Population size")
+```
+
+
+7. *Come up with a question you want to answer using the gapminder data and write it down. Then, create a data visualisation that answers the question and explain how your visualization answers the question. (Example: you wish to see what was mean life expectancy across the continents in the year you were born versus your parents' birth years). [Hint: if you wish to have more data than is in the filtered gapminder, you can load either the `gapminder_unfiltered` dataset and download more at https://www.gapminder.org/data/ ]*
+
+
+Using the gapminder data, I wish to investigate whether there is a correlation between a country's CO2-emissions and the wealth of that country (as measured by GDP). I do this by downloading a dataset containing CO2 emission from the gapminder website and combining with the gapminder data we've been working with so far.
+
+```{r - dowloading data and cleaning}
+# loading a csv showing CO2 emissions pr person
+
+df_emission <- read_csv("/Users/emmaolsen/Desktop/cognitive_science/5th_semester/cultural_datascience/au650627_olsen_emma/hw_4/co2_emissions_tonnes_per_person.csv")
+
+
+df_emission_2007 <- df_emission %>% 
+  select(country, `2018`) %>% 
+  rename(Emission=`2018`)
+
+gapminder_2007 <- gapminder %>% 
+  filter(year==2007)
+
+df_emission_2007_full <- merge(df_emission_2007, gapminder_2007)
+head(df_emission_2007_full)
+```
+
+
+```{r - emission visualisation}
+df_emission_2007_full %>% 
+  ggplot(aes(Emission, gdpPercap, color=continent))+
+  geom_point()+
+  scale_x_log10()+
+  labs(
+    title="CO2 Emission and GDP in 2007",
+    x="CO2 emission pr. person (log scale)",
+    y="GDP per capita",
+    color="Continent")+
+  theme(plot.title = element_text(hjust = 0.5, size = 18))
+```
+
+
+*Answer:*  
+
+The graph does indeed seem to suggest that our general CO2 emission pr. person increases as the wealth of a country grows. The graph also suggests that generally European countries omit more CO2 pr. person than people from African countries, and interestingly enough also seem to omit more CO2 than people in American countries. 
+
+
+
+
+
