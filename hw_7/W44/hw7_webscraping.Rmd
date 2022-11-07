@@ -1,0 +1,207 @@
+---
+title: "Webscraping with Rvest"
+author: "EOL"
+date: '2022-11-07'
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Goal
+
+I will use the rvest library to scrape data from wikipedia. More specifically, I will scrape a list of chief executive officers from this wikipedia page: https://en.wikipedia.org/wiki/List_of_chief_executive_officers. On the wikipedia page, the list is described as the following: The following is a list of chief executive officers of notable companies. The list also includes lead executives with a position corresponding to chief executive officer (CEO), such as managing director (MD), and any concurrent positions held.
+
+
+**My goal is to look at the overall gender distribution, i.e. the counts of males and females*. I will look at the gender distribution. However, the table doesn't contain gender labels so for that I'll use the R package called Gender: https://www.r-project.org/nosvn/pandoc/gender.html
+ 
+
+## Installing R packages
+
+I'll install the following packages and load their libraries:
+
+- `rvest` for scraping web data
+- `tidyverse`, `stringr`, and `dplyr` all for data wrangling
+- `tidyr` to create tidy data if needed
+- `GenderInfer` to assign gender based on
+first name.
+
+
+```{r}
+pacman::p_load(rvest,tidyverse,stringr,dplyr,tidyr,GenderInfer)
+```
+
+## Scraping the data
+
+```{r}
+url <- "https://en.wikipedia.org/wiki/List_of_chief_executive_officers"
+
+# scraping 
+parsed_html <- read_html(url)
+```
+
+```{r}
+ceo_table <- parsed_html %>% 
+  html_elements("table") %>% 
+  html_table()
+
+# retrieving the data 
+ceo_table <- ceo_table[[1]]
+
+head(ceo_table)
+```
+
+## Data cleaning 
+
+First, there are some name abbreviations that I would like to change. 
+
+```{r}
+ceo_df <- ceo_table
+
+library(stringi)
+ceo_withdots <- ceo_df[stri_detect_fixed(ceo_df$Executive, "."),]
+
+length(ceo_withdots$Executive)
+```
+```{r}
+ceo_df$Executive <- gsub('Garo H. Armen','Garo Armen',ceo_df$Executive)
+ceo_df$Executive <- gsub('Joseph R. Swedish	','Joseph Swedish',ceo_df$Executive)
+ceo_df$Executive <- gsub('Stephen A. Schwarzman	','Stephen Schwarzman',ceo_df$Executive)
+ceo_df$Executive <- gsub('Evan G. Greenberg','Evan GreenBerg',ceo_df$Executive)
+ceo_df$Executive <- gsub('Brian L. Roberts','Brian Roberts',ceo_df$Executive)
+ceo_df$Executive <- gsub('Roland Dickey Jr.','Roland Dickey',ceo_df$Executive)
+ceo_df$Executive <- gsub('Edward D. Breen	','Edward Breen',ceo_df$Executive)
+ceo_df$Executive <- gsub('Lisa S. Jones','Lisa Jones',ceo_df$Executive)
+ceo_df$Executive <- gsub('Frederick W. Smith','Frederick Smith',ceo_df$Executive)
+ceo_df$Executive <- gsub('H. Lawrence Culp Jr.','Henry Lawrence Culp Jr',ceo_df$Executive)
+ceo_df$Executive <- gsub('Mary T. Barra','Mary Barra',ceo_df$Executive)
+ceo_df$Executive <- gsub('David M. Solomon	','David Solomon',ceo_df$Executive)
+ceo_df$Executive <- gsub('John A. Kaneb	','John Kaneb',ceo_df$Executive)
+ceo_df$Executive <- gsub('Richard B. Handler','Richard Handler',ceo_df$Executive)
+ceo_df$Executive <- gsub('Andrew S. Rosen','Andrew Rosen',ceo_df$Executive)
+ceo_df$Executive <- gsub('Charles G. Koch	','Charles Koch',ceo_df$Executive)
+ceo_df$Executive <- gsub('Steven A. Kandarian	','Steven Kandarian',ceo_df$Executive)
+ceo_df$Executive <- gsub('Michael J. Saylor','Michael Saylor',ceo_df$Executive)
+ceo_df$Executive <- gsub('James P. Gorman','James Gorman',ceo_df$Executive)
+ceo_df$Executive <- gsub('David S. Taylor','David Taylor',ceo_df$Executive)
+ceo_df$Executive <- gsub('David I. McKay','David McKay',ceo_df$Executive)
+ceo_df$Executive <- gsub('Douglas L. Peterson','Douglas Peterson',ceo_df$Executive)
+ceo_df$Executive <- gsub('Gary C. Kelly	','Gary Kelly',ceo_df$Executive)
+ceo_df$Executive <- gsub('J. Clifford Hudson	','Clifford Hudson',ceo_df$Executive)
+ceo_df$Executive <- gsub('William H. Rogers Jr.	','William Rogers',ceo_df$Executive)
+ceo_df$Executive <- gsub('Alan D. Schnitzer','Alan Schnitzer',ceo_df$Executive)
+ceo_df$Executive <- gsub('Joseph C. Papa','Joseph Papa',ceo_df$Executive)
+ceo_df$Executive <- gsub('Laura J. Alber	','Laura Alber',ceo_df$Executive)
+```
+
+
+OBS: `G. V. Prasad is a male`although I couldn't find what first name G. stands for
+
+I now want to split intermixed names into first, middle, and last names. This step is necessary because I'll be using the `GenderInfer`library to infer the gender of a CEO based on her/his first name. 
+
+
+```{r}
+library(stringr)
+ceo_df$firstname <- stringr::str_extract(ceo_df$Executive, '\\w*')  
+ceo_df$lastname <- str_extract(ceo_df$Executive, "\\w+$")
+```
+
+```{r}
+head(ceo_df)
+```
+
+# Using GenderInfer
+
+About GenderInfer: *GenderInfer (Giordano et al. (2021) is a package developed to investigate gender differences within a data set. This package is based on the work of Dr. A. Day et al. Chem. Sci., 2020,11, 2277-2301. This has been developed for analysing differences in publishing authorship by gender. This package could also be useful for other analyses where there might be differences between male and female percentages from a specified baseline. The gender is assigned based on the first name, using the following data set as a corpus: https://github.com/OpenGenderTracking/globalnamedata* (Giordano et al. (2021))
+
+
+```{r}
+# Assigning Gender
+ceo_df <- assign_gender(ceo_df,"firstname")  
+head(ceo_df)
+
+ceo_df %>% count(gender)
+```
+For some reason, the above chunk needs to be run twice to work?
+```{r}
+# Assigning Gender
+ceo_df <- assign_gender(ceo_df,"firstname")  
+head(ceo_df)
+
+ceo_df %>% count(gender)
+```
+
+ 
+```{r}
+#which(ceo_df$gender == "U")
+ceo_unknowngender<- ceo_df[ceo_df$gender=="U",]
+ceo_unknowngender[,c("firstname","lastname","gender")]
+```
+
+Changing gender of `G. V. Prasad`to male although I couldn't find what first name G. stands for
+
+```{r}
+
+ceo_unknowngender$gender <- ifelse(ceo_unknowngender$firstname=="G","M",
+                                   ifelse(ceo_unknowngender$firstname =="Börje","M",
+                                          ifelse(ceo_unknowngender$firstname =="C","M",
+                                                 ifelse(ceo_unknowngender$firstname=="Dikesh","M",
+                                                        ifelse(ceo_unknowngender$firstname =="Gunupati","M",
+                                                               ifelse(ceo_unknowngender$firstname =="J","F",
+                                                                      ifelse(ceo_unknowngender$firstname =="Li","M",
+                                                                             ifelse(ceo_unknowngender$firstname =="Oh","M",
+                                                                                    ifelse(ceo_unknowngender$firstname =="Pekka","M",
+                                                                                           ifelse(ceo_unknowngender$firstname =="Phiwa","M",
+                                                                                                  ifelse(ceo_unknowngender$firstname =="Safra" ,"F",
+                                                                                                         ifelse(ceo_unknowngender$firstname =="Sundar","M",
+                                                                                                                ifelse(ceo_unknowngender$firstname =="Tidjane","M",
+                                                                                                                       ifelse(ceo_unknowngender$firstname =="Toxey","M",
+                                                                                                                              ifelse(ceo_unknowngender$firstname=="Pat","M",
+                                                                                                                                     ifelse(ceo_unknowngender$firstname =="Vasant","M","U"))))))))))))))))
+
+```
+
+
+
+Using `match` in `Executive` column to select the elements of `gender`. 
+```{r}
+ceo_df$gender[match(ceo_unknowngender$Executive,ceo_df$Executive)] <- ceo_unknowngender$gender
+```
+
+
+# Data visualisation
+Count the variable gender
+
+```{r}
+
+ggplot(ceo_df, aes(x=as.factor(gender), fill=as.factor(gender) )) + 
+  geom_bar( ) +
+  scale_fill_hue(c=40) +
+  theme(legend.position="none")+
+  ggtitle("Count of males and females")+
+  labs(title = "Gender distribution of CEOs",subtitle = "Counts of males and females",
+  x = "Gender",
+  y = "Count") 
+
+
+```
+
+
+```{r}
+ceo_df %>% count(gender) 
+
+ceo_df %>% count(gender) %>% 
+  mutate(percent=n/sum(n)) %>% 
+  select(-n) %>% 
+  spread(gender,percent)
+```
+
+As seen in the blot above and the summary, there are 154 men on the list and 22 women on the list, corresponding to 87.5% of the CEO's on the list being males. Women are severely underrepresented by making up only 12.5% on the list, reflecting an unequal gender distribution at top positions of well knowned US companies. 
+
+# References
+
+Giordano et al. (2021). gender: Predict Gender from Names Using Historical Data. https://github.com/ropensci/gender
+

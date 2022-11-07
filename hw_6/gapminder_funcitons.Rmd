@@ -1,0 +1,76 @@
+---
+title: "homework_w43_functions_with_gapminder"
+author: "EOL"
+date: '2022-10-31'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load(tidyverse,gapminder)
+
+
+# loading in the gapminder data
+df <- gapminder
+```
+
+```{r}
+# inspect data
+ls.str(df)
+```
+
+
+```{r}
+sum(is.na(df)) # if output is 0 it means no missing values
+```
+
+Use the gapminder dataset from Week 43 to produce solutions to the three tasks below. Post the .R script or .Rmd and .html in your au##### github repository and link it here: https://github.com/Digital-Methods-HASS/au650627_olsen_emma
+
+
+### 1) Define a defensive function that calculates the Gross Domestic Product of a nation from the data available in the gapminder dataset. 
+
+You can use the population and GDPpercapita columns for it. Using that function, calculate the GDP of Denmark in the following years: 1967, 1977, 1987, 1997, 2007, and 2017.
+
+```{r}
+gdp_func <- function(df, year, country) {
+  nation_data = df[which(df$year == year & df$country==country),]
+  gdp = (nation_data$gdpPercap * nation_data$pop)
+  print(paste(country,"did in year", year, "have a GDP of", gdp))
+    }
+```
+
+```{r}
+
+dk_years <- c(1967, 1977, 1987, 1997, 2007, 2017)
+
+for (i in 1:length(dk_years)){
+  gdp_func(df,year=dk_years[i], country="Denmark")
+}
+
+```
+
+The output above shows the GDP of Denmark in the years 1967, 1977, 1987, 1997, 2007, 2017. The function still runs although it has been given a year not present in the dataset (there was no data from Denmark in year 2017). However, the output is empty as it was not possible to calculated this value. It could be predicted based on previous trends but not calculated on the basis of the dataset at hand.
+
+### 2) Write a script that loops over each country in the gapminder dataset, tests whether the country starts with a ‘B’ , and prints out whether the life expectancy is smaller than 50, between 50 and 70, or greater than 70. (Hint: remember the grepl function, and review the Control Flow tutorial)
+
+```{r}
+
+for (i in 1:nrow(df)) { 
+   if(grepl("^B", df$country[i])){ # grepl func sets value to TRUE if country starts with B (and continues)
+    if (df$lifeExp[i] < 50 ){ # life expectancy below 50 
+      text = "below 50"}
+     
+     else if (df$lifeExp[i] >= 50 & df$lifeExp[i] <= 70){ 
+      text = " between 50 and 70"}
+     
+     else if (df$lifeExp[i] > 70){
+      text = "grather than 70"}
+    
+     msg = paste0(df$country[i], "'s life expectancy is ", text)
+     print(msg)
+     
+     }}
+```
+
